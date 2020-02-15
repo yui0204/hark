@@ -9,7 +9,7 @@
     <Node name="node_LOOP0_1" type="LOOP0" x="470" y="100">
     </Node>
     <Node name="node_Constant_1" type="Constant" x="100" y="100">
-      <Parameter name="VALUE" type="string" value="/home/yui-sudo/document/dataset/sound_segmentation/datasets/multi_segdata75_256_no_sound_random_sep_72/train/2/0_multi__COIN CELLO OBOE.wav" description="The value"/>
+      <Parameter name="VALUE" type="string" value="/home/yui-sudo/document/dataset/sound_segmentation/datasets/multi_segdata75_256_no_sound_random_sep_72/train/5/0_multi__BELL PHONE HARMONICA.wav" description="The value"/>
     </Node>
     <Link from="node_InputStream_1" output="OUTPUT" to="node_LOOP0_1" input="INPUT"/>
     <Link from="node_Constant_1" output="VALUE" to="node_InputStream_1" input="INPUT"/>

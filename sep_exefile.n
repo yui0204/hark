@@ -9,7 +9,7 @@
     <Node name="node_LOOP0_1" type="LOOP0" x="470" y="100">
     </Node>
     <Node name="node_Constant_1" type="Constant" x="100" y="100">
-      <Parameter name="VALUE" type="string" value="/home/yui-sudo/document/dataset/sound_segmentation/datasets/multi_segdata75_256_no_sound_random_sep_72/train/1/0_multi__HIHAT FEMALEVOICE DRAWER.wav" description="The value"/>
+      <Parameter name="VALUE" type="string" value="/home/yui-sudo/document/dataset/sound_segmentation/datasets/multi_segdata75_256_no_sound_random_sep_72/train/4/0_multi__FEMALEVOICE WHISTLE SNAREDRUM.wav" description="The value"/>
     </Node>
     <Link from="node_InputStream_1" output="OUTPUT" to="node_LOOP0_1" input="INPUT"/>
     <Link from="node_Constant_1" output="VALUE" to="node_InputStream_1" input="INPUT"/>
@@ -43,7 +43,7 @@
       <Parameter name="INPUT_BITS" type="string" value="auto" description="Bit format of input wav file."/>
     </Node>
     <Node name="node_ConstantLocalization_1" type="ConstantLocalization" x="330" y="260">
-      <Parameter name="ANGLES" type="object" value="&lt;Vector&lt;float&gt; 110&gt;" description="A vector to specify source locations. Each vector element shows azimuth of a source in degree."/>
+      <Parameter name="ANGLES" type="object" value="&lt;Vector&lt;float&gt; 150 265 300&gt;" description="A vector to specify source locations. Each vector element shows azimuth of a source in degree."/>
       <Parameter name="ELEVATIONS" type="object" value="&lt;Vector&lt;float&gt; 0&gt;" description="Elevations of source locations. Each element represents an elevation of each source location."/>
       <Parameter name="POWER" type="object" value="&lt;Vector&lt;float&gt; 0&gt;" description="Power of sources. Each element represents a power of each source."/>
       <Parameter name="MIN_ID" type="int" value="0" description="Minimum ID of source locations. ID is given from MIN_ID and incremented for the latter sources."/>

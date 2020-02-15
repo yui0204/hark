@@ -122,6 +122,7 @@ for mode in ["train_hark/", "val_hark/"]:
             f.write(pred_angle)
         shutil.copy("sep_0.wav", save_dir + "/sep_0.wav")
         shutil.copy("sep_1.wav", save_dir + "/sep_1.wav")
-        shutil.copy("sep_2.wav", save_dir + "/sep_2.wav")    
+        if len(re.findall('\s+', pred_angle)) > 1:
+            shutil.copy("sep_2.wav", save_dir + "/sep_2.wav")    
     
     print("The number of errors = ", error)
