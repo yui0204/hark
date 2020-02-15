@@ -36,26 +36,27 @@ datasets_dir = "/home/yui-sudo/document/dataset/sound_segmentation/datasets/"
 datadir = "multi_segdata"+str(classes) + "_"+str(image_size)+"_no_sound_random_sep_72/"
 dataset = datasets_dir + datadir    
 
-segdata_dir = dataset + "train/"
-valdata_dir = dataset + "val/"
-
 labelfile = dataset + "label.csv"
 label = pd.read_csv(filepath_or_buffer=labelfile, sep=",", index_col=0)            
 
 
 with open("localization.n", "r") as f:
     loc_nfile = f.read()
-error = 0
 
 with open("sep.n", "r") as f:
     sep_nfile = f.read()
 
 for mode in ["train_hark/", "val_hark/"]:
-    if mode == "train":
+    if mode == "train_hark/":
         totalnum = 10000
+        segdata_dir = dataset + "train/"
     else:
         totalnum = 1000
+        segdata_dir = dataset + "val/"
         
+    total = 0
+    tp = 0
+    error = 0    
     for i in range(0, totalnum):
         data_dir = segdata_dir + str(i) + "/"
         save_dir = dataset + mode + str(i) + "/"
@@ -102,10 +103,13 @@ for mode in ["train_hark/", "val_hark/"]:
         pred_angle = peak_detect(spec)
         print(gt_angle)
         print(pred_angle, "\n")
-        
-        if not len(gt_angle) == len(pred_angle) or not np.array(gt_angle.split(" "), dtype=np.int16).sum() == np.array(pred_angle.split(" "), dtype=np.int16).sum():
-            error += 1
-    
+                
+        for gt in gt_angle.split(" "):
+            total += 1
+            for pred in pred_angle.split(" "):
+                if gt == pred:
+                    tp += 1
+        print("Localization accuracy:", round((tp / total), 3), "\n")
             
         sep_exefile = sep_nfile.replace('a.wav', data_dir + filename)
         sep_exefile = sep_exefile.replace('0 45 90 135 180 225 270 315', pred_angle)
@@ -126,3 +130,5 @@ for mode in ["train_hark/", "val_hark/"]:
             shutil.copy("sep_2.wav", save_dir + "/sep_2.wav")    
     
     print("The number of errors = ", error)
+    with open(dataset + mode + 'localization_error','w') as f:
+        f.write("Accuracy:" + str(round((tp / total), 3)) + "\nTP:" +  str(tp) + "\nTotal:" + str(total))
