@@ -1,0 +1,92 @@
+#!/usr/bin/env batchflow
+<?xml version="1.0"?>
+<Document>
+  <Network type="subnet" name="MAIN">
+    <Node name="node_InputStream_1" type="InputStream" x="280" y="100">
+      <Parameter name="TYPE" type="string" value="" description="Type of stream: stream, fd, or FILE (default stream)"/>
+      <Parameter name="RETRY" type="int" value="" description="If set to N, InputStream will retry N times on open fail"/>
+    </Node>
+    <Node name="node_LOOP0_1" type="LOOP0" x="470" y="100">
+    </Node>
+    <Node name="node_Constant_1" type="Constant" x="100" y="100">
+      <Parameter name="VALUE" type="string" value="/home/yui-sudo/document/dataset/sound_segmentation/datasets/multi_segdata75_256_no_sound_random_sep_72/train/1/0_multi__HIHAT FEMALEVOICE DRAWER.wav" description="The value"/>
+    </Node>
+    <Link from="node_InputStream_1" output="OUTPUT" to="node_LOOP0_1" input="INPUT"/>
+    <Link from="node_Constant_1" output="VALUE" to="node_InputStream_1" input="INPUT"/>
+    <NetOutput name="OUTPUT_1" node="node_LOOP0_1" terminal="OUTPUT_1" object_type="Map&amp;lt;int,ObjectRef&amp;gt;" description="The same as input."/>
+  </Network>
+  <Network type="iterator" name="LOOP0">
+    <Node name="node_AudioStreamFromWave_1" type="AudioStreamFromWave" x="100" y="110">
+      <Parameter name="LENGTH" type="int" value="512" description="The frame length of each channel (in samples) [default: 512]."/>
+      <Parameter name="ADVANCE" type="int" value="160" description="The shift length beween adjacent frames (in samples)[default: 160]."/>
+      <Parameter name="USE_WAIT" type="bool" value="true" description="If true, real recording is simulated [default: false]."/>
+    </Node>
+    <Node name="node_MultiFFT_1" type="MultiFFT" x="380" y="110">
+      <Parameter name="LENGTH" type="int" value="512" description="FFT length in sample. [default: 512]"/>
+      <Parameter name="WINDOW" type="string" value="CONJ" description="A window function for FFT. WINDOW should be CONJ, HAMMING, RECTANGLE, or HANNING. [default: CONJ]"/>
+      <Parameter name="WINDOW_LENGTH" type="int" value="512" description="Window length of the window function. [default: 512]"/>
+    </Node>
+    <Node name="node_Synthesize_1" type="Synthesize" x="930" y="100">
+      <Parameter name="LENGTH" type="int" value="512" description="Size of window length in sample. [default: 512]"/>
+      <Parameter name="ADVANCE" type="int" value="160" description="The length in sample between a frame and a previous frame. [default: 160]"/>
+      <Parameter name="SAMPLING_RATE" type="int" value="16000" description="Sampling rate (Hz) [default: 16000]."/>
+      <Parameter name="MIN_FREQUENCY" type="int" value="125" description="Minimum frequency (Hz) [default: 125]"/>
+      <Parameter name="MAX_FREQUENCY" type="int" value="7900" description="Maximum frequency (Hz) [default: 7900]"/>
+      <Parameter name="WINDOW" type="string" value="HAMMING" description="A window function for overlap-add. WINDOW should be CONJ, HAMMING, RECTANGLE, or HANNING. [default: HAMMING]"/>
+      <Parameter name="OUTPUT_GAIN" type="float" value="1.0" description="Output gain factor. [default: 1.0]"/>
+    </Node>
+    <Node name="node_SaveWavePCM_1" type="SaveWavePCM" x="1150" y="100">
+      <Parameter name="BASENAME" type="string" value="sep_" description="Basename of files. [default: sep_]"/>
+      <Parameter name="ADVANCE" type="int" value="160" description="The shift length beween adjacent frames (in samples)[default: 160]."/>
+      <Parameter name="SAMPLING_RATE" type="int" value="16000" description="Sampling rate (in samples)[default: 16000]."/>
+      <Parameter name="BITS" type="string" value="int24" description="Bit format of samples. int16 and int24  bits are supported."/>
+      <Parameter name="INPUT_BITS" type="string" value="auto" description="Bit format of input wav file."/>
+    </Node>
+    <Node name="node_ConstantLocalization_1" type="ConstantLocalization" x="330" y="260">
+      <Parameter name="ANGLES" type="object" value="&lt;Vector&lt;float&gt; 110&gt;" description="A vector to specify source locations. Each vector element shows azimuth of a source in degree."/>
+      <Parameter name="ELEVATIONS" type="object" value="&lt;Vector&lt;float&gt; 0&gt;" description="Elevations of source locations. Each element represents an elevation of each source location."/>
+      <Parameter name="POWER" type="object" value="&lt;Vector&lt;float&gt; 0&gt;" description="Power of sources. Each element represents a power of each source."/>
+      <Parameter name="MIN_ID" type="int" value="0" description="Minimum ID of source locations. ID is given from MIN_ID and incremented for the latter sources."/>
+    </Node>
+    <Node name="node_BeamForming_1" type="BeamForming" x="630" y="100">
+      <Parameter name="LENGTH" type="int" value="512" description="The frame length of each channel (in samples) [default: 512]."/>
+      <Parameter name="ADVANCE" type="int" value="160" description="The shift length beween adjacent frames (in samples)[default: 160]."/>
+      <Parameter name="SAMPLING_RATE" type="int" value="16000" description="Sampling rate (Hz) [default: 16000]."/>
+      <Parameter name="LOWER_BOUND_FREQUENCY" type="int" value="0" description="Lower bound of frequency (Hz). [default: 0]"/>
+      <Parameter name="UPPER_BOUND_FREQUENCY" type="int" value="8000" description="Upper bound of frequency (Hz). [default: 8000]"/>
+      <Parameter name="TF_CONJ_FILENAME" type="string" value="72_tf.zip" description="Filename of a pre-measured transfer function for separation."/>
+      <Parameter name="INITW_FILENAME" type="string" value="" description="Filename of an initial separation matrix. If specified, a matrix in INITW_FILENAME is used as an initial separation matrix. Otherwise, initial separation matrix is estimated from the geometrical relationship or pre-measured TF according to TF_CONJ."/>
+      <Parameter name="GICA_SS_METHOD" type="string" value="ADAPTIVE" description="The calculation method for SS step size parameter corresponding to the blind separation part. &quot;FIX&quot; uses a fixed step size as GICA_SS_MYU, &quot;LC_MYU&quot; uses the same value as GICA_LC_MYU, and &quot;ADAPTIVE&quot; adaptively estimates an optimal step size. This is used only when BF_METHOD=GICA. [default: ADAPTIVE]"/>
+      <Parameter name="GHDSS_SS_METHOD" type="string" value="ADAPTIVE" description="The calculation method for SS step size parameter corresponding to the blind separation part. &quot;FIX&quot; uses a fixed step size as GHDSS_SS_MYU, &quot;LC_MYU&quot; uses the same value as GHDSS_LC_MYU, and &quot;ADAPTIVE&quot; adaptively estimates an optimal step size. This is used only when BF_METHOD=GHDSS. [default: ADAPTIVE]"/>
+      <Parameter name="GICA_SS_MYU" type="float" value="0.001" description="SS step size value if GICA_SS_METHOD=FIX. SS adaptive step size scaler if GICA_SS_METHOD=ADAPTIVE. [default 0.001]"/>
+      <Parameter name="GHDSS_SS_MYU" type="float" value="0.001" description="SS step size value if GHDSS_SS_METHOD=FIX. SS adaptive step size scaler if GHDSS_SS_METHOD=ADAPTIVE. [default 0.001]"/>
+      <Parameter name="LCMV_LC_METHOD" type="string" value="ADAPTIVE" description="The calculation method for LC step size corresponding to geometric constraints. &quot;FIX&quot; uses a fixed value as LCMV_LC_MYU, and &quot;Adaptive&quot; adaptively estimates an optimal step size as LCMV_LC_MYU. This is used only when BF_METHOD=LCMV. [default: ADAPTIVE]"/>
+      <Parameter name="GJ_LC_METHOD" type="string" value="ADAPTIVE" description="The calculation method for LC step size corresponding to geometric constraints. &quot;FIX&quot; uses a fixed value as GJ_LC_MYU, and &quot;Adaptive&quot; adaptively estimates an optimal step size as GJ_LC_MYU. This is used only when BF_METHOD=GJ. [default: ADAPTIVE]"/>
+      <Parameter name="GICA_LC_METHOD" type="string" value="ADAPTIVE" description="The calculation method for LC step size corresponding to geometric constraints. &quot;FIX&quot; uses a fixed value as GICA_LC_MYU, and &quot;Adaptive&quot; adaptively estimates an optimal step size as GICA_LC_MYU. This is used only when BF_METHOD=GICA. [default: ADAPTIVE]"/>
+      <Parameter name="GHDSS_LC_METHOD" type="string" value="ADAPTIVE" description="The calculation method for LC step size corresponding to geometric constraints. &quot;FIX&quot; uses a fixed value as GHDSS_LC_MYU, and &quot;Adaptive&quot; adaptively estimates an optimal step size as GHDSS_LC_MYU. This is used only when BF_METHOD=GHDSS. [default: ADAPTIVE]"/>
+      <Parameter name="LCMV_LC_MYU" type="float" value="0.001" description="LC step size value if LCMV_LC_METHOD=FIX. LC adaptive step size scaler if LCMV_LC_METHOD=ADAPTIVE. [default 0.001]"/>
+      <Parameter name="GJ_LC_MYU" type="float" value="0.001" description="LC step size value if GJ_LC_METHOD=FIX. LC adaptive step size scaler if GJ_LC_METHOD=ADAPTIVE. [default 0.001]"/>
+      <Parameter name="GICA_LC_MYU" type="float" value="0.001" description="LC step size value if GICA_LC_METHOD=FIX. LC adaptive step size scaler if GICA_LC_METHOD=ADAPTIVE and if GICA_SS_METHOD=LC_MYU. [default 0.001]"/>
+      <Parameter name="GHDSS_LC_MYU" type="float" value="0.001" description="LC step size value if GHDSS_LC_METHOD=FIX. LC adaptive step size scaler if GHDSS_LC_METHOD=ADAPTIVE and if GHDSS_SS_METHOD=LC_MYU. [default 0.001]"/>
+      <Parameter name="GHDSS_LC_CONST" type="string" value="FULL" description="The calculation method for geometric constraints. &quot;FULL&quot; uses all elements of a matrix, and &quot;DIAG&quot; only uses diagonal parts. [default: FULL]"/>
+      <Parameter name="GICA_SS_SCAL" type="float" value="1" description="Scaling factor of the nonlinear function for SS step size. [default: 1.0]"/>
+      <Parameter name="GHDSS_SS_SCAL" type="float" value="1" description="Scaling factor of the nonlinear function for SS step size. [default: 1.0]"/>
+      <Parameter name="GHDSS_NOISE_FLOOR" type="float" value="0" description="Noise floor value. [default 0.0]"/>
+      <Parameter name="GHDSS_UPDATE" type="string" value="STEP" description="The update method of separation matrix. &quot;STEP&quot; updates W sequentially, i.e., based on SS and then on LC cost. &quot;TOTAL&quot; updates W based on an integrated value of SS and LC cost [default: STEP]"/>
+      <Parameter name="UPDATE_METHOD_W" type="string" value="ID" description="Switching method of separation matrix, W. [default: ID]"/>
+      <Parameter name="UPDATE_ACCEPT_DISTANCE" type="float" value="300" description="Angle allowance to switch separation matrix in mm. This parameter is available when UPDATE_METHOD_W is POS or ID_POS and when INITW_FILENAME is set. [default: 300.0]"/>
+      <Parameter name="EXPORT_W" type="bool" value="false" description="Separation matrix W is exported if true. [default: false]"/>
+      <Parameter name="EXPORT_W_FILENAME" type="string" value="" description="The filename to export W."/>
+      <Parameter name="BF_METHOD" type="string" value="GHDSS" description="beam-forming algorithm type."/>
+      <Parameter name="ENABLE_DEBUG" type="bool" value="false" description="enable debug print"/>
+    </Node>
+    <Link from="node_AudioStreamFromWave_1" output="AUDIO" to="node_MultiFFT_1" input="INPUT"/>
+    <Link from="node_Synthesize_1" output="OUTPUT" to="node_SaveWavePCM_1" input="INPUT"/>
+    <Link from="node_MultiFFT_1" output="OUTPUT" to="node_BeamForming_1" input="INPUT_FRAMES"/>
+    <Link from="node_ConstantLocalization_1" output="SOURCES" to="node_BeamForming_1" input="INPUT_SOURCES"/>
+    <Link from="node_BeamForming_1" output="OUTPUT" to="node_Synthesize_1" input="INPUT"/>
+    <NetInput name="INPUT" node="node_AudioStreamFromWave_1" terminal="INPUT" object_type="Stream" description="An audio input stream (IStream)."/>
+    <NetOutput name="OUTPUT_1" node="node_SaveWavePCM_1" terminal="OUTPUT" object_type="Map&amp;lt;int,ObjectRef&amp;gt;" description="The same as input."/>
+    <NetCondition name="CONDITION" node="node_AudioStreamFromWave_1" terminal="NOT_EOF"/>
+  </Network>
+</Document>

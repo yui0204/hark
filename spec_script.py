@@ -33,8 +33,9 @@ image_size = 256
 #datasets_dir = "/media/yui-sudo/Samsung_T5/dataset/sound_data/datasets/"
 datasets_dir = "/home/yui-sudo/document/dataset/sound_segmentation/datasets/"
 
-datadir = "multi_segdata"+str(classes) + "_"+str(image_size)+"_no_sound_random_sep/"
+datadir = "multi_segdata"+str(classes) + "_"+str(image_size)+"_no_sound_random_sep_72/"
 dataset = datasets_dir + datadir    
+
 segdata_dir = dataset + "train/"
 valdata_dir = dataset + "val/"
 
@@ -49,70 +50,78 @@ error = 0
 with open("sep.n", "r") as f:
     sep_nfile = f.read()
 
-
+for mode in ["train_hark/", "val_hark/"]:
+    if mode == "train":
+        totalnum = 10000
+    else:
+        totalnum = 1000
         
-for i in range(10):
-    data_dir = segdata_dir + str(i) + "/"
-    save_dir = dataset + "train_hark/" + str(i) + "/"
-    filelist = os.listdir(data_dir)  
-    
-    with open(data_dir + "/sound_direction.txt", "r") as f:
-        direction = f.read().split("\n")[:-1]
+    for i in range(0, totalnum):
+        data_dir = segdata_dir + str(i) + "/"
+        save_dir = dataset + mode + str(i) + "/"
+        filelist = os.listdir(data_dir)  
         
-    gt_angle = ""
-    for n in range(len(filelist)):    
-        if filelist[n][:7] == "0_multi":
-            filename = filelist[n][:]
-            #shutil.copy(data_dir + filename, os.getcwd())
-            for k in range(len(direction)):
-                gt_angle = gt_angle + str(int(re.sub("\\D", "", direction[k].split("_")[1]))) + " "
-                
-            print("No.", i)
-            print(filename)
-    gt_angle = gt_angle[:-1]
-
-    ### localization
-    loc_exefile = loc_nfile.replace('a.wav', data_dir + filename)
-
-    with open('loc_exefile.n','w') as f:
-        f.write(loc_exefile)
-
-    os.system("./loc_exefile.n | grep MUSIC > spec.txt")
-
-    spec = pd.read_csv("spec.txt", delimiter=" ", header=None) # 日本語パス不可
-    spec = spec.T.iloc[2:-1]
+        with open(data_dir + "/sound_direction.txt", "r") as f:
+            direction = f.read().split("\n")[:-1]
+            
+        gt_angle = ""
+        for n in range(len(filelist)):    
+            if filelist[n][:7] == "0_multi":
+                filename = filelist[n][:]
+                #shutil.copy(data_dir + filename, os.getcwd())
+                for k in range(len(direction)):
+                    gt_angle = gt_angle + str(int(re.sub("\\D", "", direction[k].split("_")[1]))) + " "
+                    
+                print("No.", i)
+                print(filename)
+        gt_angle = gt_angle[:-1]
     
-    spec = np.array(spec, np.float32)
+        ### localization
+        loc_exefile = loc_nfile.replace('a.wav', data_dir + filename)
     
-    #plt.pcolormesh(spec)
-    #plt.pcolormesh(np.arange(0,4.1,0.1), np.arange(0,359,5), spec)
-    #plt.pcolormesh(np.arange(0,4.1,0.1), np.arange(0,359,45), spec)
-    #plt.colorbar()
-    #plt.show()
+        with open('loc_exefile.n','w') as f:
+            f.write(loc_exefile)
     
-    spec = spec.max(1)
-    #plt.plot(spec)
-    #plt.show()
+        os.system("./loc_exefile.n | grep MUSIC > spec.txt")
     
-    pred_angle = peak_detect(spec)
-    print(gt_angle)
-    print(pred_angle, "\n")
-    
-    if not len(gt_angle) == len(pred_angle) or not np.array(gt_angle.split(" "), dtype=np.int16).sum() == np.array(pred_angle.split(" "), dtype=np.int16).sum():
-        error += 1
-
+        spec = pd.read_csv("spec.txt", delimiter=" ", header=None) # 日本語パス不可
+        spec = spec.T.iloc[2:-1]
         
-    sep_exefile = sep_nfile.replace('a.wav', data_dir + filename)
-    sep_exefile = sep_exefile.replace('0 45 90 135 180 225 270 315', pred_angle)
-    sep_exefile = sep_exefile.replace('sep_', save_dir + "sep_")
+        spec = np.array(spec, np.float32)
+        
+        #plt.pcolormesh(spec)
+        #plt.pcolormesh(np.arange(0,4.1,0.1), np.arange(0,359,5), spec)
+        #plt.pcolormesh(np.arange(0,4.1,0.1), np.arange(0,359,45), spec)
+        #plt.colorbar()
+        #plt.show()
+        
+        spec = spec.max(1)
+        #plt.plot(spec)
+        #plt.show()
+        
+        pred_angle = peak_detect(spec)
+        print(gt_angle)
+        print(pred_angle, "\n")
+        
+        if not len(gt_angle) == len(pred_angle) or not np.array(gt_angle.split(" "), dtype=np.int16).sum() == np.array(pred_angle.split(" "), dtype=np.int16).sum():
+            error += 1
     
-    with open('sep_exefile.n','w') as f:
-        f.write(sep_exefile)
+            
+        sep_exefile = sep_nfile.replace('a.wav', data_dir + filename)
+        sep_exefile = sep_exefile.replace('0 45 90 135 180 225 270 315', pred_angle)
+        
+        with open('sep_exefile.n','w') as f:
+            f.write(sep_exefile)
+        
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        shutil.copy(data_dir + filename, save_dir + filename)
+        shutil.copy(data_dir + "/sound_direction.txt", save_dir + "/sound_direction.txt")
+        os.system("./sep_exefile.n")
+        with open(save_dir + 'pred_direction','w') as f:
+            f.write(pred_angle)
+        shutil.copy("sep_0.wav", save_dir + "/sep_0.wav")
+        shutil.copy("sep_1.wav", save_dir + "/sep_1.wav")
+        shutil.copy("sep_2.wav", save_dir + "/sep_2.wav")    
     
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    shutil.copy(data_dir + filename, save_dir + filename)
-    shutil.copy(data_dir + "/sound_direction.txt", save_dir + "/sound_direction.txt")
-    #os.system("./sep_exefile.n")
-
-print("The number of errors = ", error)
+    print("The number of errors = ", error)
