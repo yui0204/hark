@@ -48,7 +48,7 @@ with open("sep.n", "r") as f:
 
 for mode in ["train_hark/", "val_hark/"]:
     if mode == "train_hark/":
-        totalnum = 10000
+        totalnum = 1
         segdata_dir = dataset + "train/"
     else:
         totalnum = 1000
@@ -129,6 +129,6 @@ for mode in ["train_hark/", "val_hark/"]:
         if len(re.findall('\s+', pred_angle)) > 1:
             shutil.copy("sep_2.wav", save_dir + "/sep_2.wav")    
     
-    print("The number of errors = ", error)
+
     with open(dataset + mode + 'localization_error','w') as f:
         f.write("Accuracy:" + str(round((tp / total), 3)) + "\nTP:" +  str(tp) + "\nTotal:" + str(total))
